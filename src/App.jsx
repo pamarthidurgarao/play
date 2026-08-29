@@ -48,8 +48,15 @@ export default function App() {
   useEffect(() => {
     async function loadLibrary() {
       try {
-        // Use Vite's BASE_URL to automatically handle /play/ subpath in production
-        const response = await fetch(`${import.meta.env.BASE_URL}songs.json`);
+        // Try relative path first, then fallbacks for different deployment scopes
+        let response = await fetch('songs.json');
+        if (!response.ok) {
+          response = await fetch(`${import.meta.env.BASE_URL}songs.json`);
+        }
+        if (!response.ok) {
+          response = await fetch('/play/songs.json');
+        }
+        
         if (response.ok) {
           const data = await response.json();
           setAlbums(data.albums || []);

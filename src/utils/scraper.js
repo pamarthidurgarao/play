@@ -69,8 +69,8 @@ export async function clearStore(storeName) {
 
 // Scraper logic using CORS proxy or local proxy
 const CORS_PROXIES = [
-  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
 ];
 
 async function fetchHTML(url, proxyIndex = 0) {

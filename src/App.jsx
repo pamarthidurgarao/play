@@ -44,52 +44,19 @@ export default function App() {
 
   const audioRef = useRef(null);
 
-  // Load Initial Library data from IndexedDB
+  // Load Initial Library data directly from pre-discovered songs.json
   useEffect(() => {
     async function loadLibrary() {
       try {
-        const db = await initDB();
-        let storedAlbums = await getAllFromStore('albums');
-        let storedSongs = await getAllFromStore('songs');
-        
-        // Load metadata
-        const tx = db.transaction('metadata', 'readonly');
-        const store = tx.objectStore('metadata');
-        const req = store.get('lastScanTime');
-        
-        let lastScanVal = null;
-        req.onsuccess = () => {
-          if (req.result) {
-            lastScanVal = req.result.value;
-            setLastSync(lastScanVal);
-          }
-        };
-
-        // If IndexedDB is empty, pre-populate it from the static songs.json!
-        if ((!storedAlbums || storedAlbums.length === 0) || (!storedSongs || storedSongs.length === 0)) {
-          try {
-            const response = await fetch('/songs.json');
-            if (response.ok) {
-              const staticData = await response.json();
-              storedAlbums = staticData.albums;
-              storedSongs = staticData.songs;
-              lastScanVal = staticData.lastScanTime;
-              
-              // Save to IndexedDB
-              await writeToStore('albums', storedAlbums);
-              await writeToStore('songs', storedSongs);
-              await writeToStore('metadata', { key: 'lastScanTime', value: lastScanVal });
-              
-              setLastSync(lastScanVal);
-            }
-          } catch (staticErr) {
-            console.warn('Failed to load static pre-discovered songs.json:', staticErr);
-          }
+        // Use Vite's BASE_URL to automatically handle /play/ subpath in production
+        const response = await fetch(`${import.meta.env.BASE_URL}songs.json`);
+        if (response.ok) {
+          const data = await response.json();
+          setAlbums(data.albums || []);
+          setSongs(data.songs || []);
+          setLastSync(data.lastScanTime);
         }
-
-        setAlbums(storedAlbums || []);
-        setSongs(storedSongs || []);
-
+        
         // Load Favorites
         const storedFavs = localStorage.getItem('favorites');
         if (storedFavs) {
